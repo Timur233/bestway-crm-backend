@@ -20,4 +20,4 @@ Route::resource('categories', 'Api\ApiCategoryController');
 Route::resource('prices',     'Api\ApiPriceController');
 Route::resource('shops',      'Api\ApiShopController');
 Route::resource('stocks',     'Api\ApiStockController');
-
+Route::resource('kaspi',      'Api\ApiKaspiController');
