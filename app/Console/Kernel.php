@@ -5,16 +5,6 @@ namespace App\Console;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 
-function proc_exec() {
-    $output = [];
-    $exitCode = 0;
-    $command = 'php /path/to/artisan fetch:orders';
-
-    exec($command, $output, $exitCode);
-
-    return $exitCode;
-}
-
 class Kernel extends ConsoleKernel
 {
     /**
@@ -25,14 +15,17 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        if (proc_exec() !== 0) {
-            // обработка ошибок
-        } else {
-            // обработка вывода
-        }
+        // $schedule->command('fetch:orders')
+        //      ->daily()
+        //      ->sendOutputTo('/path/to/log/fetch_orders.log')
+        //      ->emailOutputTo('admin@example.com')
+        //      ->before(function () {
+        //          // Действия, выполняемые перед выполнением команды
+        //      });
 
-        // $schedule->command('fetch:orders');
-        // $schedule->command('fetch:orders')->everyFiveMinutes();
+        $schedule->call(function () {
+            exec('php ' . env('ARTISAN_PATH') . '/artisan fetch:orders');
+        });
     }
 
     /**
