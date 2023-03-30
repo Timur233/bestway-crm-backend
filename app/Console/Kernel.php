@@ -15,7 +15,18 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        $schedule->command('fetch:orders');
+        $output = [];
+        $exitCode = 0;
+        $command = 'php /path/to/artisan fetch:orders';
+
+        exec($command, $output, $exitCode);
+
+        if ($exitCode !== 0) {
+            // обработка ошибок
+        } else {
+            // обработка вывода
+        }
+        // $schedule->command('fetch:orders');
         // $schedule->command('fetch:orders')->everyFiveMinutes();
     }
 
