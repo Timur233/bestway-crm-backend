@@ -52,7 +52,7 @@ class FetchOrders extends Command
             'query' => [
                 'page[number]' => '0',
                 'page[size]' => '1000',
-                'filter[orders][state]' => 'ARCHIVE',
+                'filter[orders][state]' => 'NEW',
                 'filter[orders][creationDate][$ge]' => '1679881434000',
                 'filter[orders][creationDate][$le]' => '1680054234000',
             ]

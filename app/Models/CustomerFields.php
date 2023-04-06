@@ -5,16 +5,18 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Shops extends Model
+class CustomerFields extends Model
 {
     use HasFactory;
 
-    protected $table = 'kaspi_shops';
-
     protected $fillable = [
-        'kaspi_token',
-        'kaspi_shop_id',
-        'kaspi_shop_name',
-        'title',
+        'name',
+        'slug',
+        'value',
     ];
+
+    public function customer()
+    {
+        return $this->belongsTo(Customer::class);
+    }
 }
