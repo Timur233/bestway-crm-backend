@@ -122,7 +122,7 @@ class ApiKaspiController extends Controller
                         ],
                     ],
                     'entries' => $this->fetch_order_entries(
-                        'https://kaspi.kz/shop/api/v2/orders/' . $kaspiOrder->id . '/entries'
+                        'https://kaspi.kz/shop/api/v2/orders/' . $kaspiOrder->id . '/entries', $shop_token
                     ),
                 ];
 
@@ -148,7 +148,7 @@ class ApiKaspiController extends Controller
         return $orders;
     }
 
-    private function fetch_order_entries($link) {
+    private function fetch_order_entries($link, $shop_token) {
         $curl = curl_init();
 
         curl_setopt_array($curl, [
@@ -160,7 +160,7 @@ class ApiKaspiController extends Controller
             CURLOPT_CUSTOMREQUEST => "GET",
             CURLOPT_HTTPHEADER => [
                 "Content-Type: application/vnd.api+json",
-                "X-Auth-Token: v5fgjD5Y2v7++RytwB2RV0ndMqBbVgSpAaE/EytLwgw="
+                "X-Auth-Token: " . $shop_token
             ],
         ]);
 
@@ -186,7 +186,7 @@ class ApiKaspiController extends Controller
                     'price' => $entry_data->attributes->basePrice,
                     'delivery_cost' => $entry_data->attributes->deliveryCost,
                     'product' => $this->fetch_order_item(
-                        'https://kaspi.kz/shop/api/v2/orderentries/' . $entry_data->id . '/product'
+                        'https://kaspi.kz/shop/api/v2/orderentries/' . $entry_data->id . '/product', $shop_token
                     ),
                 ];
             }
@@ -195,7 +195,7 @@ class ApiKaspiController extends Controller
         return $entries;
     }
 
-    private function fetch_order_item($link) {
+    private function fetch_order_item($link, $shop_token) {
         $curl = curl_init();
 
         curl_setopt_array($curl, [
@@ -207,7 +207,7 @@ class ApiKaspiController extends Controller
             CURLOPT_CUSTOMREQUEST => "GET",
             CURLOPT_HTTPHEADER => [
                 "Content-Type: application/vnd.api+json",
-                "X-Auth-Token: v5fgjD5Y2v7++RytwB2RV0ndMqBbVgSpAaE/EytLwgw="
+                "X-Auth-Token: " . $shop_token
             ],
         ]);
 
@@ -231,7 +231,7 @@ class ApiKaspiController extends Controller
                 'code' => $order_product->data->attributes->code,
                 'name' => $order_product->data->attributes->name,
                 'our_product' => $this->fetch_our_product(
-                    'https://kaspi.kz/shop/api/v2/masterproducts/' . $order_product->data->id . '/merchantProduct'
+                    'https://kaspi.kz/shop/api/v2/masterproducts/' . $order_product->data->id . '/merchantProduct', $shop_token
                 )
             ];
         }
@@ -239,7 +239,7 @@ class ApiKaspiController extends Controller
         return $product;
     }
 
-    private function fetch_our_product($link) {
+    private function fetch_our_product($link, $shop_token) {
         $curl = curl_init();
 
         curl_setopt_array($curl, [
@@ -251,7 +251,7 @@ class ApiKaspiController extends Controller
             CURLOPT_CUSTOMREQUEST => "GET",
             CURLOPT_HTTPHEADER => [
                 "Content-Type: application/vnd.api+json",
-                "X-Auth-Token: v5fgjD5Y2v7++RytwB2RV0ndMqBbVgSpAaE/EytLwgw="
+                "X-Auth-Token: " . $shop_token
             ],
         ]);
 
@@ -465,7 +465,6 @@ class ApiKaspiController extends Controller
         $this->update_order_fields($new_order->id, $customer['adres_id'], $order_data['order_fields']);
 
 
-
 ///////////////////////////////////
         $date = date("d M Y H:i:s");
 
@@ -479,7 +478,7 @@ class ApiKaspiController extends Controller
 
         if ($order_data['delivery_type'] != 'DELIVERY_PICKUP') {
             $customer_adres = <<< ADRES
-            Адрес: {$order_data['order_fields']['customer']['cutomer_adres']['town']}, {$order_data['order_fields']['customer']['cutomer_adres']['street_name']}, {$order_data['order_fields']['customer']['cutomer_adres']['street_number']}
+            Адрес: {$order_data['customer']['cutomer_adres']['town']}, {$order_data['customer']['cutomer_adres']['street_name']}, {$order_data['customer']['cutomer_adres']['street_number']}
             ADRES;
         }
 
@@ -488,6 +487,7 @@ class ApiKaspiController extends Controller
 
         Магазин: {$shop_title}
         Номер заказа: {$code}
+        Статус заказа: {$new_order->status->status_description}
 
         Cостав заказа:
         {$entries}
@@ -516,7 +516,7 @@ class ApiKaspiController extends Controller
         foreach ($statuses as $status) {
             $kaspiOrders = $this->fetch_orders(
                 $status->status_name,
-                strtotime("-2 days") . '000',
+                strtotime("-1 day") . '000',
                 strtotime('now') . '000',
                 $shop->kaspi_token,
             );
