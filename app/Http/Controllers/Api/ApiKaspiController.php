@@ -71,11 +71,12 @@ class ApiKaspiController extends Controller
 
         if (isset($kaspiOrders->data) && !empty($kaspiOrders->data)) {
             foreach ($kaspiOrders->data as $kaspiOrder) {
-                $orders[] = [
+                $order_data = [
                     'status_id' => '',
                     'order_number' => $kaspiOrder->id,
                     'order_description' => 'Kaspi order id=' . $kaspiOrder->id,
                     'order_total' => $kaspiOrder->attributes->totalPrice,
+                    'delivery_type' => $kaspiOrder->attributes->deliveryMode,
                     'order_fields' => [
                         [
                             'field_name' => 'Код на каспи',
@@ -101,16 +102,7 @@ class ApiKaspiController extends Controller
                     'customer' => [
                         'customer_name' => $kaspiOrder->attributes->customer->firstName . ' ' . $kaspiOrder->attributes->customer->lastName,
                         'customer_phone' => $kaspiOrder->attributes->customer->cellPhone,
-                        'cutomer_adres' => [
-                            'street_name' => $kaspiOrder->attributes->deliveryAddress->streetName,
-                            'street_number' => $kaspiOrder->attributes->deliveryAddress->streetNumber,
-                            'town' => $kaspiOrder->attributes->deliveryAddress->town,
-                            'district' => $kaspiOrder->attributes->deliveryAddress->district,
-                            'building' => $kaspiOrder->attributes->deliveryAddress->building,
-                            'apartment' => $kaspiOrder->attributes->deliveryAddress->apartment,
-                            'latitude' => $kaspiOrder->attributes->deliveryAddress->latitude,
-                            'longitude' => $kaspiOrder->attributes->deliveryAddress->longitude,
-                        ],
+                        'cutomer_adres' => [],
                         'customer_fields' => [
                             [
                                 'name' => 'Имя',
@@ -133,6 +125,21 @@ class ApiKaspiController extends Controller
                         'https://kaspi.kz/shop/api/v2/orders/' . $kaspiOrder->id . '/entries'
                     ),
                 ];
+
+                if ($kaspiOrder->attributes->deliveryMode != 'DELIVERY_PICKUP') {
+                    $order_data['customer']['cutomer_adres'] = [
+                        'street_name' => $kaspiOrder->attributes->deliveryAddress->streetName,
+                        'street_number' => $kaspiOrder->attributes->deliveryAddress->streetNumber,
+                        'town' => $kaspiOrder->attributes->deliveryAddress->town,
+                        'district' => $kaspiOrder->attributes->deliveryAddress->district,
+                        'building' => $kaspiOrder->attributes->deliveryAddress->building,
+                        'apartment' => $kaspiOrder->attributes->deliveryAddress->apartment,
+                        'latitude' => $kaspiOrder->attributes->deliveryAddress->latitude,
+                        'longitude' => $kaspiOrder->attributes->deliveryAddress->longitude,
+                    ];
+                }
+
+                $orders[] = $order_data;
             }
         }
 
@@ -298,6 +305,8 @@ class ApiKaspiController extends Controller
      *
      */
     private function create_customer_adres($customer_id, $adres) {
+        if ($adres === []): return null; endif;
+
         if ($adres['town'] === '' || $adres['street_name'] === '' || $adres['street_number'] === ''):
             return null;
         endif;
@@ -468,6 +477,12 @@ class ApiKaspiController extends Controller
             $entries .= $entry['product']['our_product']['name'] . ' - ' . $entry['quantity'] . ' x ' . $entry['price'] . 'гт. \n';
         }
 
+        if ($order_data['delivery_type'] != 'DELIVERY_PICKUP') {
+            $customer_adres = <<< ADRES
+            Адрес: {$order_data['order_fields']['customer']['cutomer_adres']['town']}, {$order_data['order_fields']['customer']['cutomer_adres']['street_name']}, {$order_data['order_fields']['customer']['cutomer_adres']['street_number']}
+            ADRES;
+        }
+
         $this->telegram_alert(<<< MESSAGE
         Дата: {$date}
 
@@ -479,7 +494,7 @@ class ApiKaspiController extends Controller
 
         Клиент: {$new_order->customer->customer_name}
         Телфон: <a href='8{$new_order->customer->customer_phone}'>+7{$new_order->customer->customer_phone}</a>
-        Адрес: {$order_data['order_fields']['customer']['cutomer_adres']['town']}, {$order_data['order_fields']['customer']['cutomer_adres']['street_name']}, {$order_data['order_fields']['customer']['cutomer_adres']['street_number']}
+        {$customer_adres}
 
         Cумма заказа: {$total} тг.
 
