@@ -280,21 +280,24 @@ class ApiKaspiController extends Controller
         return $product;
     }
 
-    private function telegram_alert($mess) {
+    private function telegram_alert($mess, $buttons) {
         // $this->print_response($mess);
         $token='564889425:AAHlzDFCddWRJgT87OzjpC6hjyAihb9lgvU';
+        $replyMarkup = array(
+            'inline_keyboard' => $buttons
+        );
         $query = [
-            'chat_id' => -597650160,
+            'chat_id' => 420047281,
             'parse_mode' => 'HTML',
-            'text' => $mess
+            'text' => $mess,
+            'reply_markup' => json_encode($replyMarkup)
         ];
-
 
         file_get_contents(
             sprintf(
                 'https://api.telegram.org/bot%s/sendMessage?%s',
                 $token,
-                http_build_query($query)
+                http_build_query($query),
             )
         );
     }
@@ -446,6 +449,7 @@ class ApiKaspiController extends Controller
             $find_order->update(['status_id' => $status_id]);
             $find_order->update(['customer_id' => $customer['id']]);
             $find_order->update(['order_total' => $order_data['order_total']]);
+            $find_order->update(['order_description' => $order_data['entries_in_line']]);
 
             $this->update_order_fields($find_order->id, $customer['adres_id'], $order_data['order_fields']);
 
@@ -455,7 +459,7 @@ class ApiKaspiController extends Controller
         $new_order = new Order();
 
         $new_order->order_number = $order_data['order_number'];
-        $new_order->order_description = $order_data['order_description'];
+        $new_order->order_description = $order_data['entries_in_line'];
         $new_order->status_id = $status_id;
         $new_order->customer_id = $customer['id'];
         $new_order->order_total = $order_data['order_total'];
@@ -465,16 +469,11 @@ class ApiKaspiController extends Controller
         $this->update_order_fields($new_order->id, $customer['adres_id'], $order_data['order_fields']);
 
 
-///////////////////////////////////
+        ///////////////////////////////////
         $date = date("d M Y H:i:s");
 
         $code = OrderFields::where([['order_id', '=', $new_order->id], ['field_slug', '=', 'kaspi_code']])->first()['field_value'];
         $total = number_format($new_order->order_total, 0, ' ', ' ');
-        $entries = '';
-
-        foreach ($order_data['entries'] as $entry) {
-            $entries .= $entry['product']['our_product']['name'] . ' - ' . $entry['quantity'] . ' x ' . $entry['price'] . 'гт. \n';
-        }
 
         if ($order_data['delivery_type'] != 'DELIVERY_PICKUP') {
             $customer_adres = <<< ADRES
@@ -490,7 +489,7 @@ class ApiKaspiController extends Controller
         Статус заказа: {$new_order->status->status_description}
 
         Cостав заказа:
-        {$entries}
+        {$order_data['entries_in_line']}
 
         Клиент: {$new_order->customer->customer_name}
         Телфон: <a href='8{$new_order->customer->customer_phone}'>+7{$new_order->customer->customer_phone}</a>
@@ -499,8 +498,15 @@ class ApiKaspiController extends Controller
         Cумма заказа: {$total} тг.
 
         Ссылка: https://kaspi.kz/merchantcabinet/#/orders/details/{$code}
-        MESSAGE);
-///////////////////////////////////
+        MESSAGE, [
+            [
+                [
+                    'text' => 'Написать Whatsapp',
+                    'url' => 'https://api.whatsapp.com/send?phone=7' . $new_order->customer->customer_phone
+                ],
+            ]
+        ]);
+        ///////////////////////////////////
 
 
 
@@ -516,13 +522,19 @@ class ApiKaspiController extends Controller
         foreach ($statuses as $status) {
             $kaspiOrders = $this->fetch_orders(
                 $status->status_name,
-                strtotime("-1 day") . '000',
+                strtotime("-1 hour") . '000', // -1 вфн
                 strtotime('now') . '000',
                 $shop->kaspi_token,
             );
 
             foreach ($kaspiOrders as $order) {
                 try {
+                    $order['entries_in_line'] = '';
+
+                    foreach ($order['entries'] as $entry) {
+                        $order['entries_in_line'] .= $entry['product']['our_product']['name'] . ' - ' . $entry['quantity'] . ' x ' . $entry['price'] . 'гт. \n';
+                    }
+
                     $this->create_order($order, $status->id, $shop->title);
                 } catch (\Throwable $th) {
                     $hasError = true;
