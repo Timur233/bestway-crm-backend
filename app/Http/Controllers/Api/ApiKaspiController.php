@@ -287,7 +287,7 @@ class ApiKaspiController extends Controller
             'inline_keyboard' => $buttons
         );
         $query = [
-            'chat_id' => 420047281,
+            'chat_id' => -1001975478546,
             'parse_mode' => 'HTML',
             'text' => $mess,
             'reply_markup' => json_encode($replyMarkup)
