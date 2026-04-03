@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\ApiKaspiController;
+use App\Http\Controllers\Api\ApiTestController;
 
 /*
 |--------------------------------------------------------------------------
@@ -17,3 +18,4 @@ use App\Http\Controllers\Api\ApiKaspiController;
 
 Route::get('/kaspi', [ApiKaspiController::class, 'index']);
 Route::get('/kaspi/all', [ApiKaspiController::class, 'all']);
+Route::get('/test', [ApiTestController::class, 'test']);
