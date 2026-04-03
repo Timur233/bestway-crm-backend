@@ -30,4 +30,16 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    'telegram' => [
+        'bot_token' => env('TELEGRAM_BOT_TOKEN'),
+        'chat_id' => env('TELEGRAM_CHAT_ID'),
+    ],
+
+    'green_api' => [
+        'base_url' => env('GREEN_API_BASE_URL', 'https://api.green-api.com'),
+        'instance_id' => env('GREEN_API_INSTANCE_ID'),
+        'api_token' => env('GREEN_API_API_TOKEN'),
+        'webhook_secret' => env('GREEN_API_WEBHOOK_SECRET'),
+    ],
+
 ];
