@@ -2,41 +2,69 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\Order\OrderListService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class OrderListController extends Controller
 {
+    public function __construct(private OrderListService $orderListService)
+    {
+    }
+
     public function index()
     {
-		$orders = $products = DB::select(<<<SQL
-			SELECT
-				orders.id as id,
-				DATE_ADD(orders.created_at, INTERVAL 5 HOUR) as order_date,
-				orders.order_description as description,
-				orders.order_total as total,
-				kaspi_codes.field_value AS kaspi_code,
-				statuses.status_description AS status,
-				customers.customer_name as customer_name,
-				customers.customer_phone as customer_phone,
-				CONCAT('г. ', adres.town, ' ', adres.street_name, ' дом ', adres.street_number) as customer_adres
-			FROM `orders` AS orders
-			LEFT JOIN `order_statuses` AS statuses ON orders.status_id = statuses.id
-			LEFT JOIN `customers` AS customers ON orders.customer_id = customers.id
-			LEFT JOIN `customer_adreses` AS adres ON customers.id = adres.customer_id
-			LEFT JOIN `order_fields` AS kaspi_codes 
-			ON kaspi_codes.order_id = orders.id AND kaspi_codes.field_slug = 'kaspi_code'
-			WHERE orders.created_at > '2025-06-20 00:00:00'
-			AND orders.status_id != '6'
-			ORDER BY `order_date` ASC;
-		SQL);
-        $data = [
-            'page_title' => 'Список заказов от 20 июня',
-            'page_description' => 'This is a description passed from the controller.',
-			'orders' => (array) $orders
+        return view('orderlist', [
+            'currentUser' => auth()->user(),
+            'ordersEndpoint' => route('order-list.orders'),
+            'logoutEndpoint' => route('logout'),
+        ]);
+    }
+
+    public function orders(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'page' => ['nullable', 'integer', 'min:1'],
+            'per_page' => ['nullable', 'integer', 'min:10', 'max:500'],
+            'query' => ['nullable', 'string', 'max:255'],
+            'status' => ['nullable', 'string', 'max:255'],
+            'date_from' => ['nullable', 'date'],
+            'date_to' => ['nullable', 'date'],
+            'sort_by' => ['nullable', 'string', 'max:50'],
+            'sort_direction' => ['nullable', 'in:asc,desc'],
+        ]);
+
+        $filters = [
+            'query' => $validated['query'] ?? null,
+            'status' => $validated['status'] ?? null,
+            'date_from' => $validated['date_from'] ?? null,
+            'date_to' => $validated['date_to'] ?? null,
+            'sort_by' => $validated['sort_by'] ?? null,
+            'sort_direction' => $validated['sort_direction'] ?? null,
         ];
 
-        // Возвращение представления с параметрами
-        return view('orderlist', $data);
+        $orders = $this->orderListService->getOrdersPaginated(
+            $filters,
+            $validated['page'] ?? 1,
+            $validated['per_page'] ?? 25
+        );
+        $summary = $this->orderListService->getSummary($filters);
+
+        return response()->json([
+            'data' => $orders->items(),
+            'meta' => [
+                'current_page' => $orders->currentPage(),
+                'last_page' => $orders->lastPage(),
+                'per_page' => $orders->perPage(),
+                'total' => $orders->total(),
+                'from' => $orders->firstItem(),
+                'to' => $orders->lastItem(),
+            ],
+            'summary' => $summary,
+            'filters' => [
+                'applied' => $filters,
+                'statuses' => $this->orderListService->getAvailableStatuses(),
+            ],
+        ]);
     }
 }

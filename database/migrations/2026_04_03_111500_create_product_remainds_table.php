@@ -13,6 +13,10 @@ class CreateProductRemaindsTable extends Migration
      */
     public function up()
     {
+        if (Schema::hasTable('product_remainds')) {
+            return;
+        }
+
         Schema::create('product_remainds', function (Blueprint $table) {
             $table->charset = 'utf8mb3';
             $table->collation = 'utf8mb3_general_ci';
