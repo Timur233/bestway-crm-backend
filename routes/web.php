@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\CustomerListController;
 use App\Http\Controllers\ProductRemainController;
+use App\Http\Controllers\WhatsappController;
 use App\Http\Controllers\Auth\LoginController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\OrderListController;
@@ -41,4 +42,9 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::get('/product-remains/items', [ProductRemainController::class, 'items'])->name('product-remains.items');
     Route::post('/product-remains/items', [ProductRemainController::class, 'store'])->name('product-remains.store');
     Route::put('/product-remains/items/{id}', [ProductRemainController::class, 'update'])->name('product-remains.update');
+    Route::get('/whatsapp', [WhatsappController::class, 'index'])->name('whatsapp.index');
+    Route::get('/whatsapp/conversations', [WhatsappController::class, 'conversations'])->name('whatsapp.conversations');
+    Route::get('/whatsapp/conversations/{conversationId}/messages', [WhatsappController::class, 'messages'])->name('whatsapp.messages');
+    Route::post('/whatsapp/conversations/{conversationId}/send-message', [WhatsappController::class, 'sendMessage'])->name('whatsapp.send-message');
+    Route::post('/whatsapp/conversations/{conversationId}/switch-mode', [WhatsappController::class, 'switchMode'])->name('whatsapp.switch-mode');
 });

@@ -31,6 +31,7 @@ const navItems = computed<AdminNavItem[]>(() => [
     { key: 'orders', label: 'Заказы', href: '/order-list', active: true },
     { key: 'customers', label: 'Покупатели', href: '/customer-list', active: false },
     { key: 'remains', label: 'Остатки', href: '/product-remains', active: false },
+    { key: 'whatsapp', label: 'WhatsApp', href: '/whatsapp', active: false },
 ]);
 
 function onPerPageChange(event: Event): void {

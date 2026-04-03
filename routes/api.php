@@ -19,3 +19,4 @@ use App\Http\Controllers\Api\ApiTestController;
 Route::get('/kaspi', [ApiKaspiController::class, 'index']);
 Route::get('/kaspi/all', [ApiKaspiController::class, 'all']);
 Route::get('/test', [ApiTestController::class, 'test']);
+Route::post('/webhooks/green-api', 'Webhook\GreenApiWebhookController');

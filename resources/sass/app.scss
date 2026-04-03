@@ -478,6 +478,105 @@ body {
     width: 100%;
 }
 
+.whatsapp-layout {
+    display: grid;
+    grid-template-columns: 320px minmax(0, 1fr);
+    gap: 12px;
+}
+
+.whatsapp-sidebar,
+.whatsapp-chat {
+    border: 1px solid rgba(91, 125, 177, 0.12);
+    border-radius: 14px;
+    background: rgba(8, 19, 34, 0.78);
+}
+
+.whatsapp-sidebar {
+    padding: 10px;
+    display: grid;
+    gap: 8px;
+    max-height: 720px;
+    overflow: auto;
+}
+
+.whatsapp-conversation-item {
+    display: grid;
+    gap: 4px;
+    width: 100%;
+    padding: 10px 12px;
+    text-align: left;
+    border: 1px solid rgba(91, 125, 177, 0.12);
+    border-radius: 12px;
+    background: rgba(12, 26, 45, 0.95);
+    color: #d8e4f7;
+    cursor: pointer;
+}
+
+.whatsapp-conversation-item.is-active {
+    border-color: rgba(96, 165, 250, 0.4);
+    background: rgba(23, 44, 71, 0.78);
+}
+
+.whatsapp-conversation-item strong {
+    font-size: 13px;
+}
+
+.whatsapp-conversation-item span,
+.whatsapp-chat-header p,
+.whatsapp-message-meta {
+    font-size: 11px;
+    color: rgba(173, 195, 226, 0.72);
+    margin: 0;
+}
+
+.whatsapp-chat {
+    padding: 12px;
+    display: grid;
+    gap: 12px;
+    min-height: 520px;
+}
+
+.whatsapp-chat-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: flex-start;
+}
+
+.whatsapp-messages {
+    display: grid;
+    gap: 10px;
+    max-height: 520px;
+    overflow: auto;
+    padding-right: 4px;
+}
+
+.whatsapp-message {
+    max-width: 78%;
+    padding: 10px 12px;
+    border-radius: 14px;
+    background: rgba(13, 30, 52, 0.95);
+    border: 1px solid rgba(91, 125, 177, 0.12);
+}
+
+.whatsapp-message.is-outgoing {
+    margin-left: auto;
+    background: rgba(24, 53, 92, 0.9);
+}
+
+.whatsapp-message-body {
+    white-space: pre-line;
+    font-size: 13px;
+    color: #eef5ff;
+}
+
+.whatsapp-composer {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 10px;
+    align-items: end;
+}
+
 @media (max-width: 1100px) {
     .orders-summary {
         grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -485,6 +584,10 @@ body {
 
     .editable-grid {
         grid-template-columns: 1fr 1fr;
+    }
+
+    .whatsapp-layout {
+        grid-template-columns: 1fr;
     }
 }
 
@@ -522,6 +625,12 @@ body {
 
     .editable-grid {
         grid-template-columns: 1fr;
+    }
+
+    .whatsapp-chat-header,
+    .whatsapp-composer {
+        grid-template-columns: 1fr;
+        display: grid;
     }
 }
 
