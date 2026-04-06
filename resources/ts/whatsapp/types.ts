@@ -45,3 +45,30 @@ export type WhatsappSummary = {
     manager_conversations: number;
     bot_conversations: number;
 };
+
+export type WhatsappBotOption = {
+    keywords: string[];
+    next_step_slug: string | null;
+};
+
+export type WhatsappBotStepItem = {
+    id: number;
+    slug: string;
+    title: string;
+    reply_text: string;
+    trigger_keywords: string[] | null;
+    options: WhatsappBotOption[] | null;
+    fallback_step_slug: string | null;
+    is_entry: boolean;
+    transfer_to_manager: boolean;
+    is_active: boolean;
+    sort_order: number;
+    created_at: string;
+    updated_at: string;
+};
+
+export type WhatsappBotTreeNodeItem = {
+    step: WhatsappBotStepItem;
+    labelFromParent: string | null;
+    children: WhatsappBotTreeNodeItem[];
+};

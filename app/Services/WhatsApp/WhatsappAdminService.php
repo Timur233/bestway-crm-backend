@@ -3,6 +3,7 @@
 namespace App\Services\WhatsApp;
 
 use App\Models\WhatsappContact;
+use App\Models\WhatsappBotStep;
 use App\Models\WhatsappConversation;
 use App\Models\WhatsappMessage;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -73,5 +74,24 @@ class WhatsappAdminService
     public function findContactOrFail(int $id): WhatsappContact
     {
         return WhatsappContact::query()->findOrFail($id);
+    }
+
+    public function getBotSteps()
+    {
+        return WhatsappBotStep::query()
+            ->orderByDesc('is_entry')
+            ->orderBy('sort_order')
+            ->orderBy('id')
+            ->get();
+    }
+
+    public function findBotStepOrFail(int $id): WhatsappBotStep
+    {
+        return WhatsappBotStep::query()->findOrFail($id);
+    }
+
+    public function createBotStep(array $attributes): WhatsappBotStep
+    {
+        return WhatsappBotStep::query()->create($attributes);
     }
 }

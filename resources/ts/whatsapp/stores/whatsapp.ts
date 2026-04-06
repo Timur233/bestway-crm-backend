@@ -1,6 +1,12 @@
 import { defineStore } from 'pinia';
 import axios from 'axios';
-import type { WhatsappConversationItem, WhatsappMessageItem, WhatsappMeta, WhatsappSummary } from '../types';
+import type {
+    WhatsappBotStepItem,
+    WhatsappConversationItem,
+    WhatsappMessageItem,
+    WhatsappMeta,
+    WhatsappSummary,
+} from '../types';
 
 type ConversationsResponse = {
     data: WhatsappConversationItem[];
@@ -10,6 +16,11 @@ type ConversationsResponse = {
 
 type MessagesResponse = {
     data: WhatsappMessageItem[];
+};
+
+type BotStepsResponse = {
+    data: WhatsappBotStepItem[];
+    selected_id?: number | null;
 };
 
 type FetchOptions = {
@@ -37,6 +48,10 @@ type WhatsappState = {
     summary: WhatsappSummary;
     selectedConversationId: number | null;
     outgoingMessage: string;
+    botSteps: WhatsappBotStepItem[];
+    botStepsLoading: boolean;
+    botStepsSaving: boolean;
+    selectedBotStepId: number | null;
 };
 
 export const useWhatsappStore = defineStore('whatsapp', {
@@ -64,11 +79,19 @@ export const useWhatsappStore = defineStore('whatsapp', {
         },
         selectedConversationId: null,
         outgoingMessage: '',
+        botSteps: [],
+        botStepsLoading: false,
+        botStepsSaving: false,
+        selectedBotStepId: null,
     }),
 
     getters: {
         selectedConversation(state): WhatsappConversationItem | null {
             return state.conversations.find((item) => item.id === state.selectedConversationId) ?? null;
+        },
+
+        selectedBotStep(state): WhatsappBotStepItem | null {
+            return state.botSteps.find((item) => item.id === state.selectedBotStepId) ?? null;
         },
     },
 
@@ -190,6 +213,74 @@ export const useWhatsappStore = defineStore('whatsapp', {
                 if (!silent) {
                     this.messagesLoading = false;
                 }
+            }
+        },
+
+        async fetchBotSteps(endpoint: string, silent = false): Promise<void> {
+            if (this.botStepsLoading && !silent) {
+                return;
+            }
+
+            if (!silent) {
+                this.botStepsLoading = true;
+                this.error = null;
+            }
+
+            try {
+                const response = await axios.get<BotStepsResponse>(endpoint);
+                this.botSteps = response.data.data ?? [];
+
+                if (this.selectedBotStepId === null && this.botSteps.length > 0) {
+                    this.selectedBotStepId = this.botSteps[0].id;
+                }
+
+                if (this.selectedBotStepId !== null && !this.botSteps.some((item) => item.id === this.selectedBotStepId)) {
+                    this.selectedBotStepId = this.botSteps[0]?.id ?? null;
+                }
+            } catch (error: unknown) {
+                if (!silent) {
+                    this.error = this.resolveError(error, 'Не удалось загрузить шаги WhatsApp-бота.');
+                }
+            } finally {
+                if (!silent) {
+                    this.botStepsLoading = false;
+                }
+            }
+        },
+
+        selectBotStep(stepId: number): void {
+            this.selectedBotStepId = stepId;
+        },
+
+        async saveBotStep(endpoint: string, stepId: number, payload: Partial<WhatsappBotStepItem>): Promise<void> {
+            this.botStepsSaving = true;
+            this.error = null;
+
+            try {
+                const response = await axios.put<BotStepsResponse>(`${endpoint}/${stepId}`, payload);
+                this.botSteps = response.data.data ?? this.botSteps;
+                this.selectedBotStepId = response.data.selected_id ?? stepId;
+            } catch (error: unknown) {
+                this.error = this.resolveError(error, 'Не удалось сохранить шаг WhatsApp-бота.');
+                throw error;
+            } finally {
+                this.botStepsSaving = false;
+            }
+        },
+
+        async createBotStep(endpoint: string, payload: Partial<WhatsappBotStepItem>): Promise<void> {
+            this.botStepsSaving = true;
+            this.error = null;
+
+            try {
+                const response = await axios.post<BotStepsResponse>(endpoint, payload);
+                this.botSteps = response.data.data ?? this.botSteps;
+                this.selectedBotStepId = response.data.selected_id ?? this.botSteps[0]?.id ?? null;
+            } catch (error: unknown) {
+                this.error = this.resolveError(error, 'Не удалось создать шаг WhatsApp-бота.');
+                throw error;
+            } finally {
+                this.botStepsSaving = false;
             }
         },
 
