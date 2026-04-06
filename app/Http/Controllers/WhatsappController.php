@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\Whatsapp\WhatsappAdminService;
-use App\Services\Whatsapp\WhatsappBotEngine;
-use App\Services\Whatsapp\WhatsappConversationService;
+use App\Services\WhatsApp\WhatsappAdminService;
+use App\Services\WhatsApp\WhatsappBotEngine;
+use App\Services\WhatsApp\WhatsappConversationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
