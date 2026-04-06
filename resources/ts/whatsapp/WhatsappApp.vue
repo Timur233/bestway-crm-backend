@@ -1,9 +1,13 @@
 <script setup lang="ts">
-import { computed, onMounted } from 'vue';
+import { computed, onMounted, onUnmounted } from 'vue';
 import type { PropType } from 'vue';
 import AdminShell from '../shared/AdminShell.vue';
 import type { AdminNavItem, CurrentUser } from '../shared/types';
 import { useWhatsappStore } from './stores/whatsapp';
+
+const ACTIVE_CONVERSATIONS_POLL_MS = 5000;
+const ACTIVE_MESSAGES_POLL_MS = 3000;
+const IDLE_POLL_MS = 15000;
 
 const props = defineProps({
     conversationsEndpoint: {
@@ -33,6 +37,9 @@ const navItems = computed<AdminNavItem[]>(() => [
     { key: 'whatsapp', label: 'WhatsApp', href: '/whatsapp', active: true },
 ]);
 
+let conversationsPollTimer: number | null = null;
+let messagesPollTimer: number | null = null;
+
 function onPerPageChange(event: Event): void {
     const target = event.target as HTMLSelectElement | null;
     if (!target) {
@@ -42,8 +49,58 @@ function onPerPageChange(event: Event): void {
     whatsappStore.changePerPage(props.conversationsEndpoint, Number(target.value));
 }
 
+function clearPollingTimers(): void {
+    if (conversationsPollTimer !== null) {
+        window.clearInterval(conversationsPollTimer);
+        conversationsPollTimer = null;
+    }
+
+    if (messagesPollTimer !== null) {
+        window.clearInterval(messagesPollTimer);
+        messagesPollTimer = null;
+    }
+}
+
+function setupPolling(): void {
+    clearPollingTimers();
+
+    const isVisible = document.visibilityState === 'visible';
+    const conversationsDelay = isVisible ? ACTIVE_CONVERSATIONS_POLL_MS : IDLE_POLL_MS;
+    const messagesDelay = isVisible ? ACTIVE_MESSAGES_POLL_MS : IDLE_POLL_MS;
+
+    conversationsPollTimer = window.setInterval(() => {
+        void whatsappStore.fetchConversations(props.conversationsEndpoint, whatsappStore.currentPage, {
+            silent: true,
+            includeMessages: false,
+        });
+    }, conversationsDelay);
+
+    messagesPollTimer = window.setInterval(() => {
+        if (whatsappStore.selectedConversationId === null) {
+            return;
+        }
+
+        void whatsappStore.fetchMessages(
+            props.conversationsEndpoint,
+            whatsappStore.selectedConversationId,
+            { silent: true }
+        );
+    }, messagesDelay);
+}
+
+function handleVisibilityChange(): void {
+    setupPolling();
+}
+
 onMounted(() => {
-    whatsappStore.fetchConversations(props.conversationsEndpoint);
+    void whatsappStore.fetchConversations(props.conversationsEndpoint);
+    setupPolling();
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+});
+
+onUnmounted(() => {
+    clearPollingTimers();
+    document.removeEventListener('visibilitychange', handleVisibilityChange);
 });
 </script>
 
