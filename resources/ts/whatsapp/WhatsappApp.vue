@@ -14,6 +14,10 @@ const props = defineProps({
         type: String,
         required: true,
     },
+    botBuilderPageEndpoint: {
+        type: String,
+        required: true,
+    },
     logoutEndpoint: {
         type: String,
         required: true,
@@ -34,7 +38,8 @@ const navItems = computed<AdminNavItem[]>(() => [
     { key: 'orders', label: 'Заказы', href: '/order-list', active: false },
     { key: 'customers', label: 'Покупатели', href: '/customer-list', active: false },
     { key: 'remains', label: 'Остатки', href: '/product-remains', active: false },
-    { key: 'whatsapp', label: 'WhatsApp', href: '/whatsapp', active: true },
+    { key: 'whatsapp', label: 'WhatsApp диалоги', href: '/whatsapp', active: true },
+    { key: 'whatsapp-bot-builder', label: 'Сценарий WhatsApp', href: props.botBuilderPageEndpoint, active: false },
 ]);
 
 let conversationsPollTimer: number | null = null;
@@ -107,7 +112,7 @@ onUnmounted(() => {
 <template>
     <AdminShell
         title="WhatsApp"
-        subtitle="Диалоги покупателей, автоответы, перевод на менеджера и будущая база для умных сценариев продаж бассейнов и химии."
+        subtitle="Диалоги покупателей, ручные ответы менеджера и контроль того, на каком шаге сейчас находится бот."
         :current-user="currentUser"
         :logout-endpoint="logoutEndpoint"
         :nav-items="navItems"

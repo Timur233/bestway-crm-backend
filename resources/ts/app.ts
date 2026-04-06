@@ -5,6 +5,7 @@ import OrderListApp from './order-list/OrderListApp.vue';
 import CustomerListApp from './customer-list/CustomerListApp.vue';
 import ProductRemainsApp from './product-remains/ProductRemainsApp.vue';
 import WhatsappApp from './whatsapp/WhatsappApp.vue';
+import WhatsappBotBuilderApp from './whatsapp/WhatsappBotBuilderApp.vue';
 import type { CurrentUser } from './shared/types';
 
 const orderListRoot = document.getElementById('order-list-app');
@@ -51,10 +52,26 @@ const whatsappRoot = document.getElementById('whatsapp-app');
 if (whatsappRoot) {
     const app = createApp(WhatsappApp, {
         conversationsEndpoint: whatsappRoot.dataset.conversationsEndpoint ?? '',
+        botStepsEndpoint: whatsappRoot.dataset.botStepsEndpoint ?? '',
+        botBuilderPageEndpoint: whatsappRoot.dataset.botBuilderPageEndpoint ?? '',
         logoutEndpoint: whatsappRoot.dataset.logoutEndpoint ?? '',
         currentUser: JSON.parse(whatsappRoot.dataset.currentUser ?? '{}') as CurrentUser,
     });
 
     app.use(createPinia());
     app.mount(whatsappRoot);
+}
+
+const whatsappBotBuilderRoot = document.getElementById('whatsapp-bot-builder-app');
+
+if (whatsappBotBuilderRoot) {
+    const app = createApp(WhatsappBotBuilderApp, {
+        whatsappPageEndpoint: whatsappBotBuilderRoot.dataset.whatsappPageEndpoint ?? '',
+        botStepsEndpoint: whatsappBotBuilderRoot.dataset.botStepsEndpoint ?? '',
+        logoutEndpoint: whatsappBotBuilderRoot.dataset.logoutEndpoint ?? '',
+        currentUser: JSON.parse(whatsappBotBuilderRoot.dataset.currentUser ?? '{}') as CurrentUser,
+    });
+
+    app.use(createPinia());
+    app.mount(whatsappBotBuilderRoot);
 }

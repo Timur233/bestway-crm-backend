@@ -4,14 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>WhatsApp</title>
+    <title>WhatsApp Bot Builder</title>
     <link rel="stylesheet" href="{{ mix('/css/app.css') }}">
 </head>
 <body>
     <div
-        id="whatsapp-app"
-        data-conversations-endpoint="{{ $conversationsEndpoint }}"
-        data-bot-builder-page-endpoint="{{ $botBuilderPageEndpoint }}"
+        id="whatsapp-bot-builder-app"
+        data-whatsapp-page-endpoint="{{ $whatsappPageEndpoint }}"
         data-bot-steps-endpoint="{{ $botStepsEndpoint }}"
         data-logout-endpoint="{{ $logoutEndpoint }}"
         data-current-user='@json(["name" => $currentUser->name, "email" => $currentUser->email])'

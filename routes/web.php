@@ -43,8 +43,12 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::post('/product-remains/items', [ProductRemainController::class, 'store'])->name('product-remains.store');
     Route::put('/product-remains/items/{id}', [ProductRemainController::class, 'update'])->name('product-remains.update');
     Route::get('/whatsapp', [WhatsappController::class, 'index'])->name('whatsapp.index');
+    Route::get('/whatsapp/bot-builder', [WhatsappController::class, 'botBuilder'])->name('whatsapp.bot-builder');
     Route::get('/whatsapp/conversations', [WhatsappController::class, 'conversations'])->name('whatsapp.conversations');
     Route::get('/whatsapp/conversations/{conversationId}/messages', [WhatsappController::class, 'messages'])->name('whatsapp.messages');
     Route::post('/whatsapp/conversations/{conversationId}/send-message', [WhatsappController::class, 'sendMessage'])->name('whatsapp.send-message');
     Route::post('/whatsapp/conversations/{conversationId}/switch-mode', [WhatsappController::class, 'switchMode'])->name('whatsapp.switch-mode');
+    Route::get('/whatsapp/bot-steps', [WhatsappController::class, 'botSteps'])->name('whatsapp.bot-steps');
+    Route::post('/whatsapp/bot-steps', [WhatsappController::class, 'storeBotStep'])->name('whatsapp.bot-steps.store');
+    Route::put('/whatsapp/bot-steps/{stepId}', [WhatsappController::class, 'updateBotStep'])->name('whatsapp.bot-steps.update');
 });
