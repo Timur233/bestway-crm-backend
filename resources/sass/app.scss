@@ -1,3 +1,7 @@
+* {
+    box-sizing: border-box;
+}
+
 .auth-page,
 .orders-page {
     margin: 0;
@@ -493,7 +497,8 @@ body {
 
 .whatsapp-sidebar {
     padding: 10px;
-    display: grid;
+    display: flex;
+    flex-direction: column;
     gap: 8px;
     max-height: 720px;
     overflow: auto;
@@ -544,7 +549,8 @@ body {
 }
 
 .whatsapp-messages {
-    display: grid;
+    display: flex;
+    flex-direction: column-reverse;
     gap: 10px;
     max-height: 520px;
     overflow: auto;
@@ -621,6 +627,7 @@ body {
     .orders-toolbar-main,
     .orders-toolbar-actions {
         width: 100%;
+        flex: none;
     }
 
     .editable-grid {

@@ -12,6 +12,11 @@ type MessagesResponse = {
     data: WhatsappMessageItem[];
 };
 
+type FetchOptions = {
+    silent?: boolean;
+    includeMessages?: boolean;
+};
+
 type WhatsappState = {
     conversations: WhatsappConversationItem[];
     messages: WhatsappMessageItem[];
@@ -68,9 +73,53 @@ export const useWhatsappStore = defineStore('whatsapp', {
     },
 
     actions: {
-        async fetchConversations(endpoint: string, page?: number): Promise<void> {
-            this.loading = true;
-            this.error = null;
+        conversationsChanged(nextItems: WhatsappConversationItem[]): boolean {
+            if (this.conversations.length !== nextItems.length) {
+                return true;
+            }
+
+            return nextItems.some((item, index) => {
+                const current = this.conversations[index];
+
+                return !current
+                    || current.id !== item.id
+                    || current.status !== item.status
+                    || current.current_step_slug !== item.current_step_slug
+                    || current.last_message_at !== item.last_message_at
+                    || current.contact.name !== item.contact.name
+                    || current.contact.phone !== item.contact.phone;
+            });
+        },
+
+        messagesChanged(nextItems: WhatsappMessageItem[]): boolean {
+            if (this.messages.length !== nextItems.length) {
+                return true;
+            }
+
+            return nextItems.some((item, index) => {
+                const current = this.messages[index];
+
+                return !current
+                    || current.id !== item.id
+                    || current.direction !== item.direction
+                    || current.body !== item.body
+                    || current.sent_at !== item.sent_at;
+            });
+        },
+
+        async fetchConversations(endpoint: string, page?: number, options: FetchOptions = {}): Promise<void> {
+            if (this.loading && !options.silent) {
+                return;
+            }
+
+            const { silent = false, includeMessages = true } = options;
+
+            if (!silent) {
+                this.loading = true;
+            }
+            if (!silent) {
+                this.error = null;
+            }
             const targetPage = page ?? this.currentPage;
 
             try {
@@ -83,7 +132,11 @@ export const useWhatsappStore = defineStore('whatsapp', {
                     },
                 });
 
-                this.conversations = response.data.data ?? [];
+                const nextConversations = response.data.data ?? [];
+
+                if (!silent || this.conversationsChanged(nextConversations)) {
+                    this.conversations = nextConversations;
+                }
                 this.currentPage = response.data.meta?.current_page ?? targetPage;
                 this.lastPage = response.data.meta?.last_page ?? 1;
                 this.perPage = response.data.meta?.per_page ?? this.perPage;
@@ -96,27 +149,47 @@ export const useWhatsappStore = defineStore('whatsapp', {
                     this.selectedConversationId = this.conversations[0].id;
                 }
 
-                if (this.selectedConversationId !== null) {
-                    await this.fetchMessages(endpoint, this.selectedConversationId);
+                if (includeMessages && this.selectedConversationId !== null) {
+                    await this.fetchMessages(endpoint, this.selectedConversationId, { silent });
                 }
             } catch (error: unknown) {
-                this.error = this.resolveError(error, 'Не удалось загрузить диалоги WhatsApp.');
+                if (!silent) {
+                    this.error = this.resolveError(error, 'Не удалось загрузить диалоги WhatsApp.');
+                }
             } finally {
-                this.loading = false;
+                if (!silent) {
+                    this.loading = false;
+                }
             }
         },
 
-        async fetchMessages(endpoint: string, conversationId: number): Promise<void> {
-            this.messagesLoading = true;
+        async fetchMessages(endpoint: string, conversationId: number, options: FetchOptions = {}): Promise<void> {
+            if (this.messagesLoading && !options.silent) {
+                return;
+            }
+
+            const { silent = false } = options;
+
+            if (!silent) {
+                this.messagesLoading = true;
+            }
             this.selectedConversationId = conversationId;
 
             try {
                 const response = await axios.get<MessagesResponse>(`${endpoint}/${conversationId}/messages`);
-                this.messages = response.data.data ?? [];
+                const nextMessages = (response.data.data ?? []).reverse();
+
+                if (!silent || this.messagesChanged(nextMessages)) {
+                    this.messages = nextMessages;
+                }
             } catch (error: unknown) {
-                this.error = this.resolveError(error, 'Не удалось загрузить сообщения.');
+                if (!silent) {
+                    this.error = this.resolveError(error, 'Не удалось загрузить сообщения.');
+                }
             } finally {
-                this.messagesLoading = false;
+                if (!silent) {
+                    this.messagesLoading = false;
+                }
             }
         },
 
