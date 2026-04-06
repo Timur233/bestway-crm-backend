@@ -112,7 +112,7 @@ export const useWhatsappStore = defineStore('whatsapp', {
 
             try {
                 const response = await axios.get<MessagesResponse>(`${endpoint}/${conversationId}/messages`);
-                this.messages = response.data.data ?? [];
+                this.messages = response.data.data.reverse() ?? [];
             } catch (error: unknown) {
                 this.error = this.resolveError(error, 'Не удалось загрузить сообщения.');
             } finally {

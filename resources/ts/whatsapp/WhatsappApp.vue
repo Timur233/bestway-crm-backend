@@ -176,6 +176,7 @@ onMounted(() => {
                                 class="editable-textarea"
                                 rows="3"
                                 placeholder="Ответ менеджера..."
+                                @keydown.enter="whatsappStore.sendMessage(conversationsEndpoint)"
                             />
 
                             <button
