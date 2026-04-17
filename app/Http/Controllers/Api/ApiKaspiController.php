@@ -171,6 +171,10 @@ class ApiKaspiController extends Controller
         $order = $result['order'];
 
         if (!$result['created']) {
+            Log::info('Telegram alert skipped because order already exists.', [
+                'order_id' => $order->id,
+                'order_number' => $order_data['order_number'] ?? null,
+            ]);
             $this->print_response('Редактирую заказ ХХХ ' . $order_data['order_number']);
             return $order->id;
         }

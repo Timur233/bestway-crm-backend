@@ -2,6 +2,8 @@
 
 namespace App\Services\Notifications;
 
+use Illuminate\Support\Facades\Log;
+
 class TelegramAlertService
 {
     public function sendMessage(string $message, array $buttons = []): void
@@ -56,5 +58,22 @@ class TelegramAlertService
             false,
             $context
         );
+
+        if ($response === false || $response === null || $response === '') {
+            Log::error('Telegram request returned an empty response.', [
+                'method' => $method,
+            ]);
+
+            return;
+        }
+
+        $decoded = json_decode($response, true);
+
+        if (!is_array($decoded) || ($decoded['ok'] ?? false) !== true) {
+            Log::error('Telegram request failed.', [
+                'method' => $method,
+                'response' => $response,
+            ]);
+        }
     }
 }
