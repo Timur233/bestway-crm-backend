@@ -10,6 +10,12 @@ export type OrderListItem = {
     customer_adres: string | null;
 };
 
+export type OrderQuickActions = {
+    contact_url: string | null;
+    crm_url: string | null;
+    kaspi_order_url: string | null;
+};
+
 export type OrdersMeta = {
     current_page: number;
     last_page: number;

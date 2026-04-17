@@ -29,6 +29,10 @@ Route::middleware('guest')->group(function () {
     Route::post('/login', [LoginController::class, 'store'])->name('login.store');
 });
 
+Route::get('/order-list/qr', [OrderListController::class, 'qr'])
+    ->middleware('signed')
+    ->name('order-list.qr');
+
 Route::middleware('auth')->group(function () {
     Route::post('/logout', [LoginController::class, 'destroy'])->name('logout');
 });

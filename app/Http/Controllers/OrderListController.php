@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Services\Order\OrderListService;
+use chillerlan\QRCode\QRCode;
+use chillerlan\QRCode\QROptions;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -65,6 +67,28 @@ class OrderListController extends Controller
                 'applied' => $filters,
                 'statuses' => $this->orderListService->getAvailableStatuses(),
             ],
+        ]);
+    }
+
+    public function qr(Request $request)
+    {
+        $validated = $request->validate([
+            'code' => ['required', 'string', 'max:255'],
+        ]);
+
+        $contactUrl = 'https://pay.kaspi.kz/chat?threadId=' . urlencode($validated['code']) . '&type=CLIENT_SELLER_BY_ORDER&from=orderInfo_pay_web';
+        $options = new QROptions([
+            'outputType' => QRCode::OUTPUT_IMAGE_PNG,
+            'eccLevel' => QRCode::ECC_M,
+            'scale' => 8,
+            'imageTransparent' => false,
+        ]);
+
+        $image = (new QRCode($options))->render($contactUrl);
+
+        return response($image, 200, [
+            'Content-Type' => 'image/png',
+            'Cache-Control' => 'public, max-age=3600',
         ]);
     }
 }
