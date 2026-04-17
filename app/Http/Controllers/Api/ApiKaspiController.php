@@ -151,11 +151,6 @@ class ApiKaspiController extends Controller
         app(TelegramAlertService::class)->sendMessage($mess, $buttons);
     }
 
-    private function telegram_photo(string $photoUrl, ?string $caption = null): void
-    {
-        app(TelegramAlertService::class)->sendPhoto($photoUrl, $caption);
-    }
-
     public function create_order($order_data, $status_id, $shop_title) {
         /**
          * Создать или обновить заказ (таблица orders) +++
@@ -232,10 +227,12 @@ class ApiKaspiController extends Controller
                     'text' => 'Связаться с клиентом',
                     'url' => $contactUrl
                 ],
+                [
+                    'text' => 'Открыть QR',
+                    'url' => $qrUrl
+                ],
             ]
         ]);
-
-        $this->telegram_photo($qrUrl, 'QR для связи с клиентом по заказу ' . $code);
 
         foreach ($order_data['entries_list'] as $item) {
             ApiTestController::changeRemind($item['code'], $item['quantity']);

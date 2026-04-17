@@ -2,6 +2,7 @@ import './bootstrap';
 import { createApp } from 'vue';
 import { createPinia } from 'pinia';
 import OrderListApp from './order-list/OrderListApp.vue';
+import OrderQrPage from './order-list/OrderQrPage.vue';
 import CustomerListApp from './customer-list/CustomerListApp.vue';
 import ProductRemainsApp from './product-remains/ProductRemainsApp.vue';
 import WhatsappApp from './whatsapp/WhatsappApp.vue';
@@ -19,6 +20,17 @@ if (orderListRoot) {
 
     app.use(createPinia());
     app.mount(orderListRoot);
+}
+
+const orderQrRoot = document.getElementById('order-qr-app');
+
+if (orderQrRoot) {
+    const app = createApp(OrderQrPage, {
+        orderCode: orderQrRoot.dataset.orderCode ?? '',
+        contactUrl: orderQrRoot.dataset.contactUrl ?? '',
+    });
+
+    app.mount(orderQrRoot);
 }
 
 const customerListRoot = document.getElementById('customer-list-app');
