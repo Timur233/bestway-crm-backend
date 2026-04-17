@@ -12,6 +12,7 @@ use App\Services\Notifications\TelegramAlertService;
 use App\Services\Order\OrderPersistenceService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\URL;
 
 class ApiKaspiController extends Controller
 {
@@ -150,6 +151,11 @@ class ApiKaspiController extends Controller
         app(TelegramAlertService::class)->sendMessage($mess, $buttons);
     }
 
+    private function telegram_photo(string $photoUrl, ?string $caption = null): void
+    {
+        app(TelegramAlertService::class)->sendPhoto($photoUrl, $caption);
+    }
+
     public function create_order($order_data, $status_id, $shop_title) {
         /**
          * Создать или обновить заказ (таблица orders) +++
@@ -176,6 +182,10 @@ class ApiKaspiController extends Controller
 
         $code = OrderFields::where([['order_id', '=', $order->id], ['field_slug', '=', 'kaspi_code']])->first()['field_value'];
         $total = number_format($order->order_total, 0, ' ', ' ');
+        $contactUrl = 'https://pay.kaspi.kz/chat?threadId=' . urlencode((string) $code) . '&type=CLIENT_SELLER_BY_ORDER&from=orderInfo_pay_web';
+        $qrUrl = URL::temporarySignedRoute('order-list.qr', now()->addDays(7), [
+            'code' => $code,
+        ]);
         $customer_adres = '';
 
         if ($order_data['delivery_type'] != 'DELIVERY_PICKUP') {
@@ -215,11 +225,13 @@ class ApiKaspiController extends Controller
         MESSAGE, [
             [
                 [
-                    'text' => 'Написать Whatsapp',
-                    'url' => 'https://api.whatsapp.com/send?phone=7' . $order->customer->customer_phone
+                    'text' => 'Связаться с клиентом',
+                    'url' => $contactUrl
                 ],
             ]
         ]);
+
+        $this->telegram_photo($qrUrl, 'QR для связи с клиентом по заказу ' . $code);
 
         foreach ($order_data['entries_list'] as $item) {
             ApiTestController::changeRemind($item['code'], $item['quantity']);

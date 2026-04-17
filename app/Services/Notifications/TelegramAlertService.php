@@ -6,24 +6,55 @@ class TelegramAlertService
 {
     public function sendMessage(string $message, array $buttons = []): void
     {
-        $query = [
+        $payload = [
             'chat_id' => config('services.telegram.chat_id'),
             'parse_mode' => 'HTML',
             'text' => $message,
         ];
 
         if (!empty($buttons)) {
-            $query['reply_markup'] = json_encode([
+            $payload['reply_markup'] = json_encode([
                 'inline_keyboard' => $buttons,
             ]);
         }
 
-        file_get_contents(
+        $this->sendRequest('sendMessage', $payload);
+    }
+
+    public function sendPhoto(string $photoUrl, ?string $caption = null): void
+    {
+        $payload = [
+            'chat_id' => config('services.telegram.chat_id'),
+            'photo' => $photoUrl,
+        ];
+
+        if ($caption !== null && $caption !== '') {
+            $payload['caption'] = $caption;
+        }
+
+        $this->sendRequest('sendPhoto', $payload);
+    }
+
+    private function sendRequest(string $method, array $payload): void
+    {
+        $context = stream_context_create([
+            'http' => [
+                'method' => 'POST',
+                'header' => "Content-type: application/x-www-form-urlencoded\r\n",
+                'content' => http_build_query($payload),
+                'ignore_errors' => true,
+                'timeout' => 15,
+            ],
+        ]);
+
+        $response = file_get_contents(
             sprintf(
-                'https://api.telegram.org/bot%s/sendMessage?%s',
+                'https://api.telegram.org/bot%s/%s',
                 config('services.telegram.bot_token'),
-                http_build_query($query)
-            )
+                $method
+            ),
+            false,
+            $context
         );
     }
 }
