@@ -4,6 +4,7 @@ export type OrderListItem = {
     description: string | null;
     total: string | number | null;
     kaspi_code: string | null;
+    shop_title: string | null;
     status: string | null;
     customer_name: string | null;
     customer_phone: string | null;

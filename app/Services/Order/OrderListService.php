@@ -24,6 +24,7 @@ class OrderListService
                 'orders.order_description as description',
                 'orders.order_total as total',
                 'kaspi_codes.kaspi_code as kaspi_code',
+                'shops.title as shop_title',
                 'statuses.status_description as status',
                 'customers.customer_name as customer_name',
                 'customers.customer_phone as customer_phone',
@@ -71,6 +72,14 @@ class OrderListService
             ->where('order_field_codes.field_slug', '=', 'kaspi_code')
             ->groupBy('order_field_codes.order_id');
 
+        $shopIds = DB::table('order_fields as order_field_shop_ids')
+            ->select(
+                'order_field_shop_ids.order_id',
+                DB::raw('MAX(order_field_shop_ids.field_value) as shop_id')
+            )
+            ->where('order_field_shop_ids.field_slug', '=', 'order_shop_id')
+            ->groupBy('order_field_shop_ids.order_id');
+
         $query = DB::table('orders')
             ->leftJoin('order_statuses as statuses', 'orders.status_id', '=', 'statuses.id')
             ->leftJoin('customers', 'orders.customer_id', '=', 'customers.id')
@@ -79,7 +88,11 @@ class OrderListService
             })
             ->leftJoinSub($kaspiCodes, 'kaspi_codes', function ($join) {
                 $join->on('kaspi_codes.order_id', '=', 'orders.id');
-            });
+            })
+            ->leftJoinSub($shopIds, 'shop_ids', function ($join) {
+                $join->on('shop_ids.order_id', '=', 'orders.id');
+            })
+            ->leftJoin('kaspi_shops as shops', 'shops.id', '=', DB::raw('CAST(shop_ids.shop_id AS UNSIGNED)'));
 
         $queryString = trim((string) ($filters['query'] ?? ''));
         if ($queryString !== '') {
@@ -91,6 +104,7 @@ class OrderListService
                     ->orWhere('customers.customer_phone', 'like', "%{$queryString}%")
                     ->orWhere('statuses.status_description', 'like', "%{$queryString}%")
                     ->orWhere('kaspi_codes.kaspi_code', 'like', "%{$queryString}%")
+                    ->orWhere('shops.title', 'like', "%{$queryString}%")
                     ->orWhere('latest_adres.customer_adres', 'like', "%{$queryString}%");
             });
         }
@@ -119,6 +133,7 @@ class OrderListService
             'description' => 'orders.order_description',
             'total' => 'orders.order_total',
             'kaspi_code' => 'kaspi_codes.kaspi_code',
+            'shop_title' => 'shops.title',
             'status' => 'statuses.status_description',
             'customer_name' => 'customers.customer_name',
             'customer_phone' => 'customers.customer_phone',

@@ -241,6 +241,10 @@ watch(selectedOrderCode, () => {
                             <strong>{{ selectedOrder.customer_phone || 'Не указан' }}</strong>
                         </div>
                         <div>
+                            <span>Магазин</span>
+                            <strong>{{ selectedOrder.shop_title || 'Не указан' }}</strong>
+                        </div>
+                        <div>
                             <span>Сумма</span>
                             <strong>{{ selectedOrder.total || '0' }} тг</strong>
                         </div>
@@ -370,6 +374,7 @@ watch(selectedOrderCode, () => {
                             <th><button type="button" class="table-sort-button" @click="setSorting('description')">Описание{{ sortLabel('description') }}</button></th>
                             <th><button type="button" class="table-sort-button" @click="setSorting('total')">Сумма{{ sortLabel('total') }}</button></th>
                             <th><button type="button" class="table-sort-button" @click="setSorting('kaspi_code')">Код{{ sortLabel('kaspi_code') }}</button></th>
+                            <th><button type="button" class="table-sort-button" @click="setSorting('shop_title')">Магазин{{ sortLabel('shop_title') }}</button></th>
                             <th><button type="button" class="table-sort-button" @click="setSorting('status')">Статус{{ sortLabel('status') }}</button></th>
                             <th><button type="button" class="table-sort-button" @click="setSorting('customer_name')">Имя{{ sortLabel('customer_name') }}</button></th>
                             <th><button type="button" class="table-sort-button" @click="setSorting('customer_phone')">Телефон{{ sortLabel('customer_phone') }}</button></th>
@@ -378,7 +383,7 @@ watch(selectedOrderCode, () => {
                     </thead>
                     <tbody>
                         <tr v-if="!ordersStore.items.length">
-                            <td colspan="9" class="orders-empty">Заказы не найдены.</td>
+                            <td colspan="10" class="orders-empty">Заказы не найдены.</td>
                         </tr>
 
                         <tr
@@ -392,6 +397,7 @@ watch(selectedOrderCode, () => {
                             <td class="orders-description">{{ order.description }}</td>
                             <td>{{ order.total }}</td>
                             <td>{{ order.kaspi_code }}</td>
+                            <td>{{ order.shop_title }}</td>
                             <td>{{ order.status }}</td>
                             <td>{{ order.customer_name }}</td>
                             <td>{{ order.customer_phone }}</td>

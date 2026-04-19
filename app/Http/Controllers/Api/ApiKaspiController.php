@@ -151,7 +151,7 @@ class ApiKaspiController extends Controller
         app(TelegramAlertService::class)->sendMessage($mess, $buttons);
     }
 
-    public function create_order($order_data, $status_id, $shop_title) {
+    public function create_order($order_data, $status_id, $shop) {
         /**
          * Создать или обновить заказ (таблица orders) +++
          * Создать поля (таблица order_fields) +++
@@ -162,8 +162,20 @@ class ApiKaspiController extends Controller
          * Cоздать адрес покупателя +++
          */
 
+        $hasShopIdField = collect($order_data['order_fields'] ?? [])->contains(function ($field) {
+            return ($field['field_slug'] ?? null) === 'order_shop_id';
+        });
+
+        if (!$hasShopIdField) {
+            $order_data['order_fields'][] = [
+                'field_name' => 'Магазин',
+                'field_slug' => 'order_shop_id',
+                'field_value' => $shop->id,
+            ];
+        }
+
         Log::info('Kaspi order import before persist.', [
-            'shop_title' => $shop_title,
+            'shop_title' => $shop->title,
             'status_id' => $status_id,
             'order_number' => $order_data['order_number'] ?? null,
             'kaspi_code' => $order_data['order_fields'][0]['field_value'] ?? null,
@@ -174,7 +186,7 @@ class ApiKaspiController extends Controller
         $order = $result['order'];
 
         Log::info('Kaspi order import after persist.', [
-            'shop_title' => $shop_title,
+            'shop_title' => $shop->title,
             'status_id' => $status_id,
             'order_number' => $order_data['order_number'] ?? null,
             'kaspi_code' => $order_data['order_fields'][0]['field_value'] ?? null,
@@ -226,7 +238,7 @@ class ApiKaspiController extends Controller
         $this->telegram_alert(<<< MESSAGE
         Дата: {$date}
 
-        Магазин: {$shop_title}
+        Магазин: {$shop->title}
         Номер заказа: {$code}
         Статус заказа: {$order->status->status_description}
 
@@ -285,7 +297,7 @@ class ApiKaspiController extends Controller
             foreach ($kaspiOrders as $order) {
                 try {
                     $order = $this->append_order_entries_meta($order);
-                    $this->create_order($order, $status->id, $shop->title);
+                    $this->create_order($order, $status->id, $shop);
                 } catch (\Throwable $th) {
                     $hasError = true;
                     $resString = '<pre>Возникла ошибка: \n'. $th . '</pre>';
@@ -317,7 +329,7 @@ class ApiKaspiController extends Controller
             foreach ($kaspiOrders as $order) {
                 try {
                     $order = $this->append_order_entries_meta($order, false);
-                    $this->create_order($order, $status->id, $shop->title);
+                    $this->create_order($order, $status->id, $shop);
                 } catch (\Throwable $th) {
                     $hasError = true;
                     $resString = '<pre>Возникла ошибка: \n'. $th . '</pre>';
