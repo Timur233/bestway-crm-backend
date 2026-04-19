@@ -162,8 +162,27 @@ class ApiKaspiController extends Controller
          * Cоздать адрес покупателя +++
          */
 
+        Log::info('Kaspi order import before persist.', [
+            'shop_title' => $shop_title,
+            'status_id' => $status_id,
+            'order_number' => $order_data['order_number'] ?? null,
+            'kaspi_code' => $order_data['order_fields'][0]['field_value'] ?? null,
+            'delivery_type' => $order_data['delivery_type'] ?? null,
+        ]);
+
         $result = app(OrderPersistenceService::class)->persist($order_data, $status_id);
         $order = $result['order'];
+
+        Log::info('Kaspi order import after persist.', [
+            'shop_title' => $shop_title,
+            'status_id' => $status_id,
+            'order_number' => $order_data['order_number'] ?? null,
+            'kaspi_code' => $order_data['order_fields'][0]['field_value'] ?? null,
+            'created' => $result['created'] ?? null,
+            'db_order_id' => $order->id ?? null,
+            'db_created_at' => optional($order->created_at)->toDateTimeString(),
+            'db_updated_at' => optional($order->updated_at)->toDateTimeString(),
+        ]);
 
         if (!$result['created']) {
             Log::info('Telegram alert skipped because order already exists.', [

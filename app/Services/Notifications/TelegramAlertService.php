@@ -2,6 +2,7 @@
 
 namespace App\Services\Notifications;
 
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 class TelegramAlertService
@@ -39,40 +40,43 @@ class TelegramAlertService
 
     private function sendRequest(string $method, array $payload): void
     {
-        $context = stream_context_create([
-            'http' => [
-                'method' => 'POST',
-                'header' => "Content-type: application/x-www-form-urlencoded\r\n",
-                'content' => http_build_query($payload),
-                'ignore_errors' => true,
-                'timeout' => 15,
-            ],
-        ]);
-
-        $response = file_get_contents(
-            sprintf(
-                'https://api.telegram.org/bot%s/%s',
-                config('services.telegram.bot_token'),
-                $method
-            ),
-            false,
-            $context
-        );
-
-        if ($response === false || $response === null || $response === '') {
-            Log::error('Telegram request returned an empty response.', [
+        try {
+            $response = Http::asForm()
+                ->timeout(20)
+                ->connectTimeout(10)
+                ->retry(2, 500)
+                ->post(sprintf(
+                    'https://api.telegram.org/bot%s/%s',
+                    config('services.telegram.bot_token'),
+                    $method
+                ), $payload);
+        } catch (\Throwable $exception) {
+            Log::error('Telegram request transport failed.', [
                 'method' => $method,
+                'message' => $exception->getMessage(),
             ]);
 
             return;
         }
 
-        $decoded = json_decode($response, true);
+        $body = $response->body();
 
-        if (!is_array($decoded) || ($decoded['ok'] ?? false) !== true) {
+        if ($body === '') {
+            Log::error('Telegram request returned an empty response.', [
+                'method' => $method,
+                'status' => $response->status(),
+            ]);
+
+            return;
+        }
+
+        $decoded = json_decode($body, true);
+
+        if (!$response->successful() || !is_array($decoded) || ($decoded['ok'] ?? false) !== true) {
             Log::error('Telegram request failed.', [
                 'method' => $method,
-                'response' => $response,
+                'status' => $response->status(),
+                'response' => $body,
             ]);
         }
     }
