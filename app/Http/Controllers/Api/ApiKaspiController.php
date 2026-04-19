@@ -170,11 +170,13 @@ class ApiKaspiController extends Controller
                 'order_id' => $order->id,
                 'order_number' => $order_data['order_number'] ?? null,
             ]);
-            $this->print_response('Редактирую заказ ХХХ ' . $order_data['order_number']);
+
+            $this->print_response('Редактирую заказ ХХХ ' . $order_data['order_fields'][0]['field_value']);
+
             return $order->id;
         }
 
-        $this->print_response('Создаю заказ ХХХ ' . $order_data['order_number']);
+        $this->print_response('Создаю заказ ХХХ ' . $order_data['order_fields'][0]['field_value']);
 
         ///////////////////////////////////
         $date = date("d M Y H:i:s");
@@ -192,7 +194,7 @@ class ApiKaspiController extends Controller
             Адрес: {$order_data['customer']['cutomer_adres']['town']}, {$order_data['customer']['cutomer_adres']['street_name']}, {$order_data['customer']['cutomer_adres']['street_number']}
             ADRES;
         }
-		
+
 		$express_alert = "";
 
         if ($order_data['is_express']) {
@@ -246,6 +248,7 @@ class ApiKaspiController extends Controller
     }
 
     public function index(Request $request) {
+        $hoursCount = !empty($request->input('hours')) ? $request->input('hours') : 1;
         $shop = Shops::where('id', '=', $request->input('id'))->first();
         $statuses = OrderStatus::all();
         $hasError = false;
@@ -253,7 +256,7 @@ class ApiKaspiController extends Controller
 
         foreach ($statuses as $status) {
             $kaspiOrders = $this->fetch_orders(
-                strtotime("-1 hour") . '000', // -1 вфн
+                strtotime("-" . $hoursCount . " hour") . '000', // -1 вфн
                 strtotime('now') . '000',
                 $shop->kaspi_token,
                 $shop->kaspi_shop_id,
