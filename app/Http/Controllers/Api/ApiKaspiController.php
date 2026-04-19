@@ -184,9 +184,9 @@ class ApiKaspiController extends Controller
         $code = OrderFields::where([['order_id', '=', $order->id], ['field_slug', '=', 'kaspi_code']])->first()['field_value'];
         $total = number_format($order->order_total, 0, ' ', ' ');
         $contactUrl = 'https://pay.kaspi.kz/chat?threadId=' . urlencode((string) $code) . '&type=CLIENT_SELLER_BY_ORDER&from=orderInfo_pay_web';
-        $qrUrl = URL::temporarySignedRoute('order-list.qr', now()->addDays(7), [
-            'code' => $code,
-        ]);
+        // $qrUrl = URL::temporarySignedRoute('order-list.qr', now()->addDays(7), [
+        //     'code' => $code,
+        // ]);
         $customer_adres = '';
 
         if ($order_data['delivery_type'] != 'DELIVERY_PICKUP') {
@@ -229,10 +229,10 @@ class ApiKaspiController extends Controller
                     'text' => 'Связаться с клиентом',
                     'url' => $contactUrl
                 ],
-                [
-                    'text' => 'Открыть QR',
-                    'url' => $qrUrl
-                ],
+                // [
+                //     'text' => 'Открыть QR',
+                //     'url' => $qrUrl
+                // ],
             ]
         ]);
 
