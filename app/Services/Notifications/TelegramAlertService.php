@@ -42,8 +42,8 @@ class TelegramAlertService
     {
         try {
             $response = Http::asForm()
+                ->withOptions(['connect_timeout' => 10])
                 ->timeout(20)
-                ->connectTimeout(10)
                 ->retry(2, 500)
                 ->post(sprintf(
                     'https://api.telegram.org/bot%s/%s',
